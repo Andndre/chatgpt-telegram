@@ -20,7 +20,7 @@ bot.on("message", async (ctx) => {
   const text = JSON.parse(JSON.stringify(ctx)).update.message.text as string;
   if (text.startsWith("/start")) return;
 
-  ctx.sendChatAction("typing");
+  await ctx.sendChatAction("typing");
 
   const conversation = await prisma.conversation.findUnique({
     where: {
