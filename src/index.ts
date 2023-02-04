@@ -57,4 +57,6 @@ bot.on("message", async (ctx) => {
   await ctx.reply(reply.text);
 });
 
-bot.launch();
+bot.launch().then(() => {
+  console.log("Bot started successfuly");
+});
