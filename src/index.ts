@@ -19,8 +19,6 @@ const environment = app.get("env") as string;
 
 console.log(environment);
 
-const prod = environment === "production";
-
 const bot = new Telegraf(BOT_TOKEN);
 
 app.use(
