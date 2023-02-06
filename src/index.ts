@@ -10,11 +10,8 @@ const errorMessageUnknown = "Something went wrong, please try again later...";
 config();
 
 const prisma = new PrismaClient();
-
 const api = new ChatGPTAPI({ apiKey: CHAT_GPT_API_KEY });
-
 const app = express();
-
 const bot = new Telegraf(BOT_TOKEN);
 
 app.use(
@@ -22,22 +19,19 @@ app.use(
 );
 
 bot.start(async (ctx) => {
-  await Promise.all([
-    ctx.reply("Hello! I'am ChatGPT.. how can I help you?"),
-    new Promise<void>(async (resolve) => {
-      const convIfExist = await prisma.conversation.findUnique({
-        where: {
-          chatId: ctx.chat.id + "id",
-        },
-      });
-      const reply = await chatGPT(
-        "Untuk seterusnya, respon dalam bahasa " +
-          (convIfExist ? convIfExist.lang : "Indonesia"),
-        ctx.chat.id,
-        convIfExist?.conversationId,
-        convIfExist?.prevMessageId,
-      );
+  const chatId = ctx.chat.id + "id";
+  const conv = await prisma.conversation.findUnique({ where: { chatId } });
+  const lang = conv ? conv.lang : "Indonesia";
 
+  await Promise.all([
+    ctx.reply("Hello! I'm ChatGPT.. how can I help you?"),
+    new Promise<void>(async (resolve) => {
+      const reply = await chatGPT(
+        `Untuk seterusnya, respon dalam bahasa ${lang}`,
+        ctx.chat.id,
+        conv?.conversationId,
+        conv?.prevMessageId,
+      );
       await ctx.reply(reply?.text || errorMessageUnknown);
       resolve();
     }),
@@ -45,59 +39,44 @@ bot.start(async (ctx) => {
 });
 
 bot.command("defaultlanguage", async (ctx) => {
-  const [_, newLang] = ctx.message.text.split(" ");
+  const [_, newLang = ""] = ctx.message.text.split(" ");
   if (!newLang) {
     ctx.reply('To set new default language, use "/defaultlanguage [language]"');
     return;
   }
-  const convIfExist = await prisma.conversation.findUnique({
-    where: {
-      chatId: ctx.chat.id + "id",
-    },
-  });
 
-  if (convIfExist) {
-    const reply = await chatGPT(
-      'Untuk seterusnya, respon menggunakan bahasa "' + newLang + '"',
-      ctx.chat.id,
-      convIfExist.conversationId,
-      convIfExist.prevMessageId,
-    );
-    if (!reply) {
-      await ctx.reply(errorMessageUnknown);
-      return;
-    }
-    await Promise.all([
-      prisma.conversation.update({
-        where: {
-          chatId: ctx.chat.id + "id",
-        },
+  const chatId = ctx.chat.id + "id";
+  const conv = await prisma.conversation.findUnique({ where: { chatId } });
+  const reply = await chatGPT(
+    `Untuk seterusnya, respon menggunakan bahasa "${newLang}"`,
+    ctx.chat.id,
+    conv?.conversationId,
+    conv?.prevMessageId,
+  );
+  if (!reply) {
+    ctx.reply(errorMessageUnknown);
+    return;
+  }
+
+  await Promise.all([
+    ctx.reply(reply.text),
+    conv
+      ? prisma.conversation.update({
+        where: { chatId },
+        data: { lang: newLang },
+      })
+      : prisma.conversation.create({
         data: {
-          lang: newLang,
-        },
-      }),
-      ctx.reply(reply.text),
-    ]);
-  } else {
-    const reply = await chatGPT(
-      "Untuk seterusnya, respon menggunakan bahasa Indonesia",
-      ctx.chat.id,
-    );
-    if (!reply) {
-      ctx.reply(errorMessageUnknown);
-      return;
-    }
-    await Promise.all([
-      ctx.reply(reply.text),
-      prisma.conversation.create({
-        data: {
-          chatId: ctx.chat.id + "id",
+          chatId,
           lang: newLang,
           conversationId: reply.conversationId!,
           prevMessageId: reply.id,
         },
       }),
     ]);
+    ]);
+  }
+  ]);
   }
 });
 
@@ -129,10 +108,11 @@ bot.on("text", async (ctx) => {
 async function chatGPT(
   message: string,
   chatId: number,
-  convId: string | undefined = undefined,
-  prevMessageId: string | undefined = undefined,
+  convId?: string,
+  prevMessageId?: string,
 ) {
   try {
+    const id = chatId + "id";
     let reply: ChatMessage;
     if (convId) {
       reply = await api.sendMessage(message, {
@@ -140,18 +120,14 @@ async function chatGPT(
         parentMessageId: prevMessageId,
       });
       await prisma.conversation.update({
-        where: {
-          chatId: chatId + "id",
-        },
-        data: {
-          prevMessageId: reply.id,
-        },
+        where: { chatId: id },
+        data: { prevMessageId: reply.id },
       });
     } else {
       reply = await api.sendMessage(message);
       await prisma.conversation.create({
         data: {
-          chatId: chatId + "id",
+          chatId: id,
           conversationId: reply.conversationId!,
           prevMessageId: reply.id,
         },
@@ -159,7 +135,7 @@ async function chatGPT(
     }
     return reply;
   } catch (e: any) {
-    console.log(e.message);
+    console.error(e.message);
   }
 }
 
