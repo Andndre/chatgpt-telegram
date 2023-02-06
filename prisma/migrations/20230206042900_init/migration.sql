@@ -3,6 +3,7 @@ CREATE TABLE "Conversation" (
     "chatId" TEXT NOT NULL,
     "conversationId" TEXT NOT NULL,
     "prevMessageId" TEXT NOT NULL,
+    "lang" TEXT NOT NULL DEFAULT 'indonesia',
 
     CONSTRAINT "Conversation_pkey" PRIMARY KEY ("chatId")
 );
