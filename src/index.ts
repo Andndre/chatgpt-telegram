@@ -15,10 +15,6 @@ const api = new ChatGPTAPI({ apiKey: CHAT_GPT_API_KEY });
 
 const app = express();
 
-const environment = app.get("env") as string;
-
-console.log(environment);
-
 const bot = new Telegraf(BOT_TOKEN);
 
 app.use(
