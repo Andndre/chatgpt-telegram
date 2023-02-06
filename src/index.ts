@@ -60,7 +60,7 @@ bot.start(async (ctx) => {
 bot.command("defaultlanguage", async (ctx) => {
   const [_, newLang] = ctx.message.text.split(" ");
   if (!newLang) {
-    ctx.reply('To set new default language, use "/setlanguage [language]"');
+    ctx.reply('To set new default language, use "/defaultlanguage [language]"');
     return;
   }
   const convIfExist = await prisma.conversation.findUnique({
