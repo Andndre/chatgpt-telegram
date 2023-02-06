@@ -73,11 +73,7 @@ bot.command("defaultlanguage", async (ctx) => {
           prevMessageId: reply.id,
         },
       }),
-    ]);
-    ]);
-  }
   ]);
-  }
 });
 
 bot.on("text", async (ctx) => {
