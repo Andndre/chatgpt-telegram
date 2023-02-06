@@ -3,14 +3,7 @@ import { Telegraf } from "telegraf";
 import { config } from "dotenv";
 import { ChatGPTAPI, ChatMessage } from "chatgpt";
 import { PrismaClient } from "@prisma/client";
-import {
-  BOT_DEV_TOKEN,
-  BOT_TOKEN,
-  CHAT_GPT_API_KEY,
-  PORT,
-  WEB_APP_DEV_URL,
-  WEB_APP_URL,
-} from "./env.js";
+import { BOT_TOKEN, CHAT_GPT_API_KEY, PORT, WEB_APP_URL } from "./env.js";
 
 const errorMessageUnknown = "Something went wrong, please try again later...";
 
@@ -28,10 +21,10 @@ console.log(environment);
 
 const prod = environment === "production";
 
-const bot = new Telegraf(prod ? BOT_TOKEN : BOT_DEV_TOKEN);
+const bot = new Telegraf(BOT_TOKEN);
 
 app.use(
-  await bot.createWebhook({ domain: prod ? WEB_APP_URL : WEB_APP_DEV_URL }),
+  await bot.createWebhook({ domain: WEB_APP_URL }),
 );
 
 bot.start(async (ctx) => {
