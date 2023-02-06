@@ -114,9 +114,9 @@ bot.command("defaultlanguage", async (ctx) => {
   }
 });
 
-bot.on("message", async (ctx) => {
+bot.on("text", async (ctx) => {
   if (ctx.from.is_bot) return;
-  const text = JSON.parse(JSON.stringify(ctx)).update.message.text as string;
+  const text = ctx.message.text;
   if (text.startsWith("/")) return;
 
   ctx.sendChatAction("typing");
