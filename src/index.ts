@@ -83,6 +83,15 @@ bot.command("defaultlanguage", async (ctx) => {
     return;
   }
 
+  const validator = /^[a-z]{2}-[A-Z]{2}$/;
+
+  if (!validator.test(newLang)) {
+    ctx.reply(
+      "Invalid IETF_LangTag!\n\nexample (for Indonesian): /defaultlanguange id-ID",
+    );
+    return;
+  }
+
   const chatId = ctx.chat.id + "id";
   const conv = await prisma.conversation.findUnique({ where: { chatId } });
   const reply = await chatGPT(
