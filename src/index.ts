@@ -15,12 +15,12 @@ import pkg from "@deepgram/sdk";
 
 const { Deepgram } = pkg;
 
-const transcribe = async (buffer: Buffer) => {
+const transcribe = async (buffer: Buffer, IETF_LangTag: string) => {
   const deepgram = new Deepgram(DEEPGRAM_API_KEY);
 
   const response = await deepgram.transcription.preRecorded(
     { buffer, mimetype: "audio/wav" },
-    { punctuate: true, language: "en-US", times: true },
+    { punctuate: true, language: IETF_LangTag, times: true },
   );
 
   const { results } = response;
@@ -55,7 +55,7 @@ app.use(
 bot.start(async (ctx) => {
   const chatId = ctx.chat.id + "id";
   const conv = await prisma.conversation.findUnique({ where: { chatId } });
-  const lang = conv ? conv.lang : "Indonesia";
+  const lang = conv ? conv.lang : "id-ID";
 
   await Promise.all([
     ctx.reply("Hello! I'm ChatGPT.. how can I help you?"),
@@ -79,10 +79,16 @@ bot.command("defaultlanguage", async (ctx) => {
     return;
   }
 
+  const IETF_LangTag = /([a-z]{2}-[A-Z]{2})/.exec(
+    (await api.sendMessage(
+      'IETF language tag dari bahasa "' + newLang + '"',
+    )).text,
+  )![0];
+
   const chatId = ctx.chat.id + "id";
   const conv = await prisma.conversation.findUnique({ where: { chatId } });
   const reply = await chatGPT(
-    `Untuk seterusnya, respon menggunakan bahasa "${newLang}"`,
+    `Untuk seterusnya, respon menggunakan bahasa "${IETF_LangTag}"`,
     ctx.chat.id,
     conv?.conversationId,
     conv?.prevMessageId,
@@ -97,12 +103,12 @@ bot.command("defaultlanguage", async (ctx) => {
     conv
       ? prisma.conversation.update({
         where: { chatId },
-        data: { lang: newLang },
+        data: { lang: IETF_LangTag },
       })
       : prisma.conversation.create({
         data: {
           chatId,
-          lang: newLang,
+          lang: IETF_LangTag,
           conversationId: reply.conversationId!,
           prevMessageId: reply.id,
         },
@@ -135,11 +141,16 @@ bot.on("text", async (ctx) => {
 });
 
 bot.on("voice", async (ctx) => {
+  const IETF_LangTag = (await prisma.conversation.findUnique({
+    where: {
+      chatId: ctx.chat.id + "id",
+    },
+  }))!.lang;
   const fileId = ctx.message.voice.file_id;
   const fileUrl = await ctx.telegram.getFileLink(fileId);
   const voiceMessage = await got(fileUrl, { responseType: "buffer" });
-  const transcription = await transcribe(voiceMessage.body);
-  ctx.reply(transcription);
+  const transcription = await transcribe(voiceMessage.body, IETF_LangTag);
+  ctx.reply("You said: " + transcription);
 });
 
 async function chatGPT(
