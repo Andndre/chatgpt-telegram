@@ -1,31 +1,25 @@
 import { default as express } from "express";
+import { default as got } from "got";
 import { Telegraf } from "telegraf";
 import { config } from "dotenv";
 import { ChatGPTAPI, ChatMessage } from "chatgpt";
 import { PrismaClient } from "@prisma/client";
-import { BOT_TOKEN, CHAT_GPT_API_KEY, PORT, WEB_APP_URL } from "./env.js";
-import speech from "@google-cloud/speech";
-import got from "got";
+import {
+  BOT_TOKEN,
+  CHAT_GPT_API_KEY,
+  DEEPGRAM_API_KEY,
+  PORT,
+  WEB_APP_URL,
+} from "./env.js";
+import { Deepgram } from "@deepgram/sdk";
 
 const transcribe = async (buffer: Buffer) => {
-  const client = new speech.SpeechClient();
+  const deepgram = new Deepgram(DEEPGRAM_API_KEY);
 
-  const audioBytes = buffer.toString("base64");
-  const audio = {
-    content: audioBytes,
-  };
-  const config = {
-    encoding: "OGG_OPUS",
-    sampleRateHertz: 16000,
-    languageCode: "en-US",
-  } as const;
-
-  const request = {
-    audio: audio,
-    config: config,
-  };
-
-  const [response] = await client.recognize(request);
+  const response = await deepgram.transcription.preRecorded(
+    { buffer, mimetype: "audio/wav" },
+    { punctuate: true, language: "en-US", times: true },
+  );
 
   const { results } = response;
 
@@ -33,7 +27,7 @@ const transcribe = async (buffer: Buffer) => {
     return errorMessageUnknown;
   }
 
-  const transcription = results
+  const transcription = results.channels
     ?.map((result) => {
       const { alternatives } = result;
       if (!alternatives) return "";
