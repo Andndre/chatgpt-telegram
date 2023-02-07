@@ -12,6 +12,7 @@ import {
   WEB_APP_URL,
 } from "./env.js";
 import pkg from "@deepgram/sdk";
+import { IETF_LangTags } from "./IETF_LangTags.js";
 
 const { Deepgram } = pkg;
 
@@ -75,20 +76,17 @@ bot.start(async (ctx) => {
 bot.command("defaultlanguage", async (ctx) => {
   const [_, newLang = ""] = ctx.message.text.split(" ");
   if (!newLang) {
-    ctx.reply('To set new default language, use "/defaultlanguage [language]"');
+    ctx.reply(
+      'To set new default language, use "/defaultlanguage [IETF_LangTag]"\n\nIETF_LangTag example:\n' +
+        IETF_LangTags.join("\n"),
+    );
     return;
   }
-
-  const IETF_LangTag = /([a-z]{2}-[A-Z]{2})/.exec(
-    (await api.sendMessage(
-      'IETF language tag dari bahasa "' + newLang + '"',
-    )).text,
-  )![0];
 
   const chatId = ctx.chat.id + "id";
   const conv = await prisma.conversation.findUnique({ where: { chatId } });
   const reply = await chatGPT(
-    `Untuk seterusnya, respon menggunakan bahasa "${IETF_LangTag}"`,
+    `Untuk seterusnya, respon menggunakan bahasa "${newLang}"`,
     ctx.chat.id,
     conv?.conversationId,
     conv?.prevMessageId,
@@ -103,12 +101,12 @@ bot.command("defaultlanguage", async (ctx) => {
     conv
       ? prisma.conversation.update({
         where: { chatId },
-        data: { lang: IETF_LangTag },
+        data: { lang: newLang },
       })
       : prisma.conversation.create({
         data: {
           chatId,
-          lang: IETF_LangTag,
+          lang: newLang,
           conversationId: reply.conversationId!,
           prevMessageId: reply.id,
         },

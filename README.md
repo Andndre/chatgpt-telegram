@@ -11,4 +11,4 @@ A Telegram bot that can respond to messages with the ChatGPT API 🔥
 
 ## Available Commands 
 
-1. `/defaultlanguage [language]` - Set the default language used by the bot. If not specified, the default language is Indonesian. 
+1. `/defaultlanguage [language]` - Set the default language used by the bot. If not specified, the default language is "id-ID". 
