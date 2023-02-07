@@ -79,9 +79,8 @@ bot.command("defaultlanguage", async (ctx) => {
 bot.on("text", async (ctx) => {
   if (ctx.from.is_bot) return;
   const text = ctx.message.text;
-  if (text.startsWith("/")) return;
-
   ctx.sendChatAction("typing");
+  if (text.startsWith("/")) return;
 
   const conversation = await prisma.conversation.findUnique({
     where: {
