@@ -4,6 +4,44 @@ import { config } from "dotenv";
 import { ChatGPTAPI, ChatMessage } from "chatgpt";
 import { PrismaClient } from "@prisma/client";
 import { BOT_TOKEN, CHAT_GPT_API_KEY, PORT, WEB_APP_URL } from "./env.js";
+import speech from "@google-cloud/speech";
+import got from "got";
+
+const transcribe = async (buffer: Buffer) => {
+  const client = new speech.SpeechClient();
+
+  const audioBytes = buffer.toString("base64");
+  const audio = {
+    content: audioBytes,
+  };
+  const config = {
+    encoding: "OGG_OPUS",
+    sampleRateHertz: 16000,
+    languageCode: "en-US",
+  } as const;
+
+  const request = {
+    audio: audio,
+    config: config,
+  };
+
+  const [response] = await client.recognize(request);
+
+  const { results } = response;
+
+  if (!results) {
+    return errorMessageUnknown;
+  }
+
+  const transcription = results
+    ?.map((result) => {
+      const { alternatives } = result;
+      if (!alternatives) return "";
+      return alternatives[0].transcript;
+    })
+    .join("\n");
+  return transcription;
+};
 
 const errorMessageUnknown = "Something went wrong, please try again later...";
 
@@ -98,6 +136,14 @@ bot.on("text", async (ctx) => {
   await ctx.reply(
     reply?.text || errorMessageUnknown,
   );
+});
+
+bot.on("voice", async (ctx) => {
+  const fileId = ctx.message.voice.file_id;
+  const fileUrl = await ctx.telegram.getFileLink(fileId);
+  const voiceMessage = await got(fileUrl, { responseType: "buffer" });
+  const transcription = await transcribe(voiceMessage.body);
+  ctx.reply(transcription);
 });
 
 async function chatGPT(
