@@ -12,7 +12,6 @@ import {
   WEB_APP_URL,
 } from "./env.js";
 import pkg from "@deepgram/sdk";
-import { IETF_LangTags } from "./IETF_LangTags.js";
 
 const { Deepgram } = pkg;
 
@@ -77,8 +76,7 @@ bot.command("defaultlanguage", async (ctx) => {
   const [_, newLang = ""] = ctx.message.text.split(" ");
   if (!newLang) {
     ctx.reply(
-      'To set new default language, use "/defaultlanguage [IETF_LangTag]"\n\nIETF_LangTag example:\n' +
-        IETF_LangTags.join("\n"),
+      'To set new default language, use "/defaultlanguage [IETF_LangTag]"\n\nIETF_LangTag example:\nid-ID\nen-EN',
     );
     return;
   }
