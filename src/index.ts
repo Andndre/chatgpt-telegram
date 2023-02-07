@@ -11,7 +11,9 @@ import {
   PORT,
   WEB_APP_URL,
 } from "./env.js";
-import { Deepgram } from "@deepgram/sdk";
+import pkg from "@deepgram/sdk";
+
+const { Deepgram } = pkg;
 
 const transcribe = async (buffer: Buffer) => {
   const deepgram = new Deepgram(DEEPGRAM_API_KEY);
