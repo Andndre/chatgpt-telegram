@@ -81,7 +81,7 @@ bot.command("defaultlanguage", async (ctx) => {
     return;
   }
 
-  const validator = /^[a-z]{2}-[A-Z]{2}$/;
+  const validator = /^[a-z]{2,3}-[A-Z]{2,3}$/;
 
   if (!validator.test(newLang)) {
     ctx.reply(
