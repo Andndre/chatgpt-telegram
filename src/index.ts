@@ -146,20 +146,28 @@ bot.on("text", async (ctx) => {
 });
 
 bot.on("voice", async (ctx) => {
-  const IETF_LangTag = (await prisma.conversation.findUnique({
+  const conv = await prisma.conversation.findUnique({
     where: {
       chatId: ctx.chat.id + "id",
     },
-  }))!.lang;
+  });
   const fileId = ctx.message.voice.file_id;
   const fileUrl = await ctx.telegram.getFileLink(fileId);
   const voiceMessage = await got(fileUrl, { responseType: "buffer" });
-  const transcription = await transcribe(voiceMessage.body, IETF_LangTag);
+  const transcription = await transcribe(
+    voiceMessage.body,
+    conv?.lang || "id-ID",
+  );
   await Promise.all([
     ctx.reply("You said: " + transcription + "\n\nGetting ChatGPT's answer..."),
     new Promise<void>(async (resolve) => {
-      const reply = await api.sendMessage(transcription);
-      await ctx.reply(reply.text);
+      const reply = await chatGPT(
+        transcription,
+        ctx.chat.id,
+        conv?.conversationId,
+        conv?.prevMessageId,
+      );
+      await ctx.reply(reply?.text || errorMessageUnknown);
       resolve();
     }),
   ]);
