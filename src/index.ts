@@ -155,7 +155,14 @@ bot.on("voice", async (ctx) => {
   const fileUrl = await ctx.telegram.getFileLink(fileId);
   const voiceMessage = await got(fileUrl, { responseType: "buffer" });
   const transcription = await transcribe(voiceMessage.body, IETF_LangTag);
-  ctx.reply("You said: " + transcription);
+  await Promise.all([
+    ctx.reply("You said: " + transcription + "\n\nGetting ChatGPT's answer..."),
+    new Promise<void>(async (resolve) => {
+      const reply = await api.sendMessage(transcription);
+      await ctx.reply(reply.text);
+      resolve();
+    }),
+  ]);
 });
 
 async function chatGPT(
