@@ -76,7 +76,7 @@ bot.command("defaultlanguage", async (ctx) => {
   const [_, newLang = ""] = ctx.message.text.split(" ");
   if (!newLang) {
     ctx.reply(
-      'To set new default language, use "/defaultlanguage [IETF_LangTag]"\n\nIETF_LangTag example:\nid-ID\nen-EN',
+      'To set new default language, use "/defaultlanguage [IETF_LangTag]"\n\nIETF_LangTag example:\nid-ID\nen-EN\n\n\n\nMore about IETF Language Tag: https://en.wikipedia.org/wiki/IETF_language_tag',
     );
     return;
   }
@@ -85,7 +85,7 @@ bot.command("defaultlanguage", async (ctx) => {
 
   if (!validator.test(newLang)) {
     ctx.reply(
-      "Invalid IETF_LangTag!\n\nexample (for Indonesian): /defaultlanguange id-ID",
+      "Invalid IETF_LangTag!\n\nexample (for Indonesian): /defaultlanguange id-ID\n\nMore about IETF Language Tag: https://en.wikipedia.org/wiki/IETF_language_tag",
     );
     return;
   }
