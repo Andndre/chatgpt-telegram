@@ -15,5 +15,5 @@ model Conversation {
   chatId         String @id
   conversationId String
   prevMessageId  String
-  lang           String @default("indonesia")
+  lang           String @default("id-ID")
 }
