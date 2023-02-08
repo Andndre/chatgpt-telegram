@@ -28,4 +28,12 @@ export async function findConv(id: string) {
 }
 
 export async function updateLang(id: string, newLang: string) {
+  return await prisma.conversation.update({
+    where: {
+      chatId: id,
+    },
+    data: {
+      lang: newLang,
+    },
+  });
 }
