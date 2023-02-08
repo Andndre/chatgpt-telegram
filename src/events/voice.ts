@@ -34,6 +34,6 @@ export async function voice(ctx: VoiceCtx) {
     ]);
   } catch (e: any) {
     console.error(e);
-    ctx.reply(messages.unknownError + "\n\n" + e.message);
+    ctx.reply(messages.transcribeFailed + "\n\n" + e);
   }
 }
