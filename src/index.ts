@@ -59,6 +59,7 @@ bot.start(async (ctx) => {
 
   await Promise.all([
     ctx.reply("Hello! I'm ChatGPT.. how can I help you?"),
+    ctx.sendChatAction("typing"),
     new Promise<void>(async (resolve) => {
       const reply = await chatGPT(
         `Untuk seterusnya, respon dalam bahasa ${lang}`,
@@ -154,12 +155,14 @@ bot.on("voice", async (ctx) => {
   const fileId = ctx.message.voice.file_id;
   const fileUrl = await ctx.telegram.getFileLink(fileId);
   const voiceMessage = await got(fileUrl, { responseType: "buffer" });
+  ctx.sendChatAction("typing");
   const transcription = await transcribe(
     voiceMessage.body,
     conv?.lang || "id-ID",
   );
   await Promise.all([
     ctx.reply("You said: " + transcription + "\n\nGetting ChatGPT's answer..."),
+    ctx.sendChatAction("typing"),
     new Promise<void>(async (resolve) => {
       const reply = await chatGPT(
         transcription,
