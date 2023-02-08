@@ -13,7 +13,7 @@ export async function lang(ctx: Ctx) {
       return;
     }
 
-    const validator = /^[a-z]{2,3}-[A-Z]{2,3}$/;
+    const validator = /^[a-z]{2,3}(-[A-Z]{2,3}){0,1}$/;
 
     if (!validator.test(newLang)) {
       ctx.reply(
