@@ -11,7 +11,7 @@
   "author": "",
   "license": "ISC",
   "dependencies": {
-    "@deepgram/sdk": "^1.16.0",
+    "@deepgram/sdk": "^1.17.0",
     "@prisma/client": "^4.10.1",
     "chatgpt": "^4.2.0",
     "dotenv": "^16.0.3",
